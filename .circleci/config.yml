@@ -9,6 +9,11 @@ jobs:
     working_directory: ~/repo
 
     steps:
+      - restore_cache:
+        keys:
+          - v1-dependencies-{{ checksum "requirements.txt" }}
+          - v1-dependencies-
+
       - run:
         name: install dependencies
         command: |
@@ -16,6 +21,11 @@ jobs:
           . venv/bin/activate
           pip install -r requirements.txt
       
+       - save_cache:
+          paths:
+            - ./venv
+          key: v1-dependencies-{{ checksum "requirements.txt" }}
+
       - run:
         name: run tests
         command: |
@@ -23,3 +33,6 @@ jobs:
           python -m unnittest -v ./test/test_number_utils.py
           nose2 -v --with-coverage
           nose2 -v --with-coverage --coverage-report html
+      - store_artifacts:
+        path: test-reports
+        destination: test-reports
