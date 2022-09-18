@@ -1,39 +1,28 @@
-version: 2.1
+name: Delpoy
+
+on: [push]
+
 jobs:
   build:
-    docker:
-      - image: circleci/python:3.10.7
-    working_directory: ~/repo
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10.7"]
 
     steps:
-      - checkout
-      
-      - restore_cache:
-        keys:
-        - v1-dependencies-{{ checksum "requirements.txt" }}
-        - v1-dependencies-
+      - uses: actions/checkout@v3
 
-      - restore_cache:
-        keys:
-        - v1-dependencies-{{ checksum "requirements.txt" }}
-        - v1-dependencies-
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v3
+        with:
+          python-version: ${{ matrix.python-version }}
 
-      - run:
-        name: install dependencies
-        command: |
-          python3 -m venv venv
-          . venv/bin/activate
-          pip install -r requirements.txt
-      
-      - save_cache:
-        paths:
-          - ./venv
-        key: v1-dependencies-{{ checksum "requirements.txt" }}
-
-      - run:
-        name: run tests
-        command: |
-          . venv/bin/activate
-          python -m unnittest -v ./test/test_number_utils.py
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+      - name: Testing Codes
+        run: |
+          python -m pip install nose2 coverage
+          cd project
           nose2 -v --with-coverage
           nose2 -v --with-coverage --coverage-report html
