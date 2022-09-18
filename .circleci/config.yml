@@ -1,40 +1,35 @@
-name: Delpoy
-
-on: [push]
+version: 2.1
+orbs:
+  python: circleci/python@3.10.7
 
 jobs:
-  build:
-    docker:
-      - image: circleci/python:3.10.7
-    working_directory: ~/repo
-
+  build_and_test: # this can be any name you choose
+    executor: python/default
     steps:
       - checkout
-      
-      - restore_cache:
-        keys:
-          - v1-dependencies-{{ checksum "requirements.txt" }}
-          - v1-dependencies-
+      - python/install-packages:
+          pkg-manager: pip
+      - run:
+          name: Run tests
+          command: python -m pytest
+      - persist_to_workspace:
+          root: ~/project
+          paths:
+            - .
 
+
+workflows:
+  test_app:
+    jobs:
+      - test
       - run:
         name: install dependencies
-        command: |
-          python3 -m venv venv
-          . venv/bin/activate
-          pip install -r requirements.txt
-      
-       - save_cache:
-          paths:
-            - ./venv
-          key: v1-dependencies-{{ checksum "requirements.txt" }}
-
+        command: python3 -m venv venv  . venv/bin/activate 
+        command: pip install -r requirements.txt
       - run:
-        name: run tests
-        command: |
-          . venv/bin/activate
-          python -m unnittest -v ./test/test_number_utils.py
-          nose2 -v --with-coverage
-          nose2 -v --with-coverage --coverage-report html
-      - store_artifacts:
-        path: test-reports
-        destination: test-reports
+          name: run tests
+          command: . venv/bin/activate
+          command:  python -m unittest discover ./tests/
+          command:  coverage html -d test-reports
+          command:  coverage run -m unittest discover ./tests/
+            
