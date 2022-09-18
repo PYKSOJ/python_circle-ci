@@ -21,7 +21,6 @@ jobs:
 workflows:
   test_app:
     jobs:
-      - test
       - run:
         name: install dependencies
         command: python3 -m venv venv  . venv/bin/activate 
